@@ -21,7 +21,7 @@ const router = Router();
 router.post('/run', async (req, res) => {
   // Authenticate with shared secret
   const cronSecret = process.env.CRON_SECRET;
-  const providedSecret = req.headers['x-cron-secret'];
+  const providedSecret = req.headers['x-cron-secret'] || req.body?.secret || req.query?.secret;
   
   if (cronSecret && providedSecret !== cronSecret) {
     console.warn('[cron] Unauthorized scrape attempt');
