@@ -104,12 +104,26 @@ export default function PriceChart({ productId }) {
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
   const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
-  const padding = (maxPrice - minPrice) * 0.15 || maxPrice * 0.05;
+  const isSinglePoint = history.length === 1;
+  const padding = isSinglePoint ? maxPrice * 0.1 : ((maxPrice - minPrice) * 0.2 || maxPrice * 0.05);
 
-  const chartData = history.map(h => ({
-    ...h,
-    time: new Date(h.scraped_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
-  }));
+  const chartData = history.map(h => {
+    const d = new Date(h.scraped_at);
+    return {
+      ...h,
+      time: d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+      fullDate: d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+    };
+  });
+
+  const formatYAxis = (v) => {
+    if (v >= 100000) return `₹${(v / 1000).toFixed(0)}k`;
+    if (v >= 1000) {
+      const k = v / 1000;
+      return k % 1 === 0 ? `₹${k.toFixed(0)}k` : `₹${k.toFixed(1)}k`;
+    }
+    return `₹${Math.round(v).toLocaleString('en-IN')}`;
+  };
 
   return (
     <div className="chart-container">
@@ -127,6 +141,26 @@ export default function PriceChart({ productId }) {
           </span>
         </div>
       </div>
+
+      {isSinglePoint && (
+        <div style={{
+          padding: '0.5rem 1rem',
+          margin: '0.5rem 0 1rem 0',
+          background: 'rgba(99, 102, 241, 0.1)',
+          border: '1px solid rgba(99, 102, 241, 0.25)',
+          borderRadius: '8px',
+          fontSize: '0.8rem',
+          color: '#c7d2fe',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+        }}>
+          <span>ℹ️</span>
+          <span>
+            Only <strong>1 data point</strong> recorded so far. A trend line requires 2+ scrapes. Click the <strong>↻ (Scrape)</strong> button on the product card above to add another price check!
+          </span>
+        </div>
+      )}
 
       <ResponsiveContainer width="100%" height={300}>
         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
@@ -153,16 +187,18 @@ export default function PriceChart({ productId }) {
             fontSize={11}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
-            domain={[minPrice - padding, maxPrice + padding]}
+            tickFormatter={formatYAxis}
+            domain={[Math.max(0, Math.floor(minPrice - padding)), Math.ceil(maxPrice + padding)]}
           />
           <Tooltip content={<CustomTooltip />} />
-          <ReferenceLine
-            y={avgPrice}
-            stroke="#6366f1"
-            strokeDasharray="4 4"
-            strokeOpacity={0.4}
-          />
+          {!isSinglePoint && (
+            <ReferenceLine
+              y={avgPrice}
+              stroke="#6366f1"
+              strokeDasharray="4 4"
+              strokeOpacity={0.4}
+            />
+          )}
           <Area
             type="monotone"
             dataKey="price"
@@ -172,13 +208,13 @@ export default function PriceChart({ productId }) {
             dot={{
               fill: '#6366f1',
               strokeWidth: 2,
-              r: 4,
+              r: 5,
               stroke: '#111827',
             }}
             activeDot={{
               fill: '#a5b4fc',
               strokeWidth: 2,
-              r: 6,
+              r: 7,
               stroke: '#6366f1',
             }}
           />
