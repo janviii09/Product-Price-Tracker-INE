@@ -34,10 +34,12 @@ function App() {
   const fetchTrackedProducts = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/api/products`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      setTrackedProducts(data || []);
+      setTrackedProducts(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to fetch tracked products:', err);
+      setTrackedProducts([]);
     } finally {
       setLoading(false);
     }
@@ -74,7 +76,7 @@ function App() {
     setUser(null);
   };
 
-  const lastScrapeTime = trackedProducts.reduce((latest, tp) => {
+  const lastScrapeTime = (trackedProducts || []).reduce((latest, tp) => {
     const time = tp.latestPrice?.scraped_at;
     if (!time) return latest;
     return !latest || new Date(time) > new Date(latest) ? time : latest;
