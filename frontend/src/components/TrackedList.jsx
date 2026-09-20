@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Package, ExternalLink, RefreshCw, Loader2, Trash2 } from 'lucide-react';
+import { Package, ExternalLink, RefreshCw, Loader2, Trash2, Bell } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-export default function TrackedList({ products, selectedId, onSelect, onRefresh, loading }) {
+export default function TrackedList({ products, selectedId, onSelect, onRefresh, loading, onSetAlert }) {
   const [scrapingId, setScrapingId] = useState(null);
 
   if (loading) {
@@ -146,6 +146,16 @@ export default function TrackedList({ products, selectedId, onSelect, onRefresh,
                     ) : (
                       <RefreshCw size={13} />
                     )}
+                  </button>
+                  <button
+                    className="btn btn--ghost btn--sm"
+                    title="Set Price / Stock Alert"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSetAlert?.({ ...product, latestPrice: latest });
+                    }}
+                  >
+                    <Bell size={13} color="#818cf8" />
                   </button>
                   <button
                     className="btn btn--ghost btn--sm"

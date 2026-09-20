@@ -18,6 +18,8 @@ import dotenv from 'dotenv';
 import searchRouter from './routes/search.js';
 import productsRouter from './routes/products.js';
 import cronRouter from './routes/cron.js';
+import alertsRouter from './routes/alerts.js';
+import authRouter from './routes/auth.js';
 
 dotenv.config();
 
@@ -27,6 +29,7 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 const allowedOrigins = [
   process.env.FRONTEND_URL,
+  process.env.FRONTEND_URL?.replace(/\/$/, ''),
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',
@@ -34,10 +37,16 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (curl, server-to-server, mobile apps)
+    // Allow requests with no origin (curl, server-to-server, mobile apps, cron triggers)
     if (!origin) return callback(null, true);
-    // Allow any localhost origin during development or matched FRONTEND_URL
-    if (/^http:\/\/localhost(:\d+)?$/.test(origin) || allowedOrigins.includes(origin)) {
+    // If FRONTEND_URL is set to '*' allow all
+    if (process.env.FRONTEND_URL === '*') return callback(null, true);
+    // Allow localhost, matched FRONTEND_URL, or any vercel.app preview/production deployment
+    if (
+      /^http:\/\/localhost(:\d+)?$/.test(origin) ||
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app')
+    ) {
       return callback(null, true);
     }
     return callback(new Error(`Origin ${origin} not allowed by CORS`));
@@ -60,15 +69,19 @@ app.use((req, res, next) => {
 app.use('/api/search', searchRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/scrape', cronRouter);
+app.use('/api/alerts', alertsRouter);
+app.use('/api/auth', authRouter);
 
 // Health check
-app.get('/api/health', (req, res) => {
+const healthCheck = (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
   });
-});
+};
+app.get('/health', healthCheck);
+app.get('/api/health', healthCheck);
 
 // 404 handler
 app.use((req, res) => {

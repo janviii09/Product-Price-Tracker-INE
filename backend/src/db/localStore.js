@@ -19,13 +19,23 @@ let state = {
   tracked_products: [],
   price_history: [],
   scrape_log: [],
+  alert_rules: [],
+  notifications: [],
 };
 
 // Load saved data if present
 try {
   if (fs.existsSync(DATA_FILE)) {
     const raw = fs.readFileSync(DATA_FILE, 'utf8');
-    state = JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    state = {
+      products: parsed.products || [],
+      tracked_products: parsed.tracked_products || [],
+      price_history: parsed.price_history || [],
+      scrape_log: parsed.scrape_log || [],
+      alert_rules: parsed.alert_rules || [],
+      notifications: parsed.notifications || [],
+    };
   }
 } catch (e) {
   console.warn('[localStore] Could not read existing local data file, starting fresh:', e.message);
@@ -35,6 +45,15 @@ let nextProductId = 1;
 let nextTrackId = 1;
 let nextPriceId = 1;
 let nextLogId = 1;
+let nextAlertId = 1;
+let nextNotificationId = 1;
+
+if (state.alert_rules?.length > 0) {
+  nextAlertId = Math.max(...state.alert_rules.map(a => Number(a.id) || 0), 0) + 1;
+}
+if (state.notifications?.length > 0) {
+  nextNotificationId = Math.max(...state.notifications.map(n => Number(n.id) || 0), 0) + 1;
+}
 
 // Recompute counters from existing data
 if (state.products.length > 0) {
@@ -277,5 +296,112 @@ export const localStore = {
       ...tp,
       latestPrice: this.getLatestPrice(tp.products.id),
     }));
+  },
+
+  // ─── Alert Rules Operations ───────────────────────────────────────────
+  saveAlertRule({ userId = null, userEmail, productId, targetPrice = null, onPriceDrop = true, onBackInStock = true }) {
+    const existingIndex = state.alert_rules.findIndex(
+      a => String(a.product_id) === String(productId) && a.user_email?.toLowerCase() === userEmail?.toLowerCase()
+    );
+
+    const rule = {
+      id: existingIndex >= 0 ? state.alert_rules[existingIndex].id : nextAlertId++,
+      user_id: userId,
+      user_email: userEmail.toLowerCase(),
+      product_id: productId,
+      target_price: targetPrice ? Number(targetPrice) : null,
+      on_price_drop: Boolean(onPriceDrop),
+      on_back_in_stock: Boolean(onBackInStock),
+      active: true,
+      created_at: existingIndex >= 0 ? state.alert_rules[existingIndex].created_at : new Date().toISOString(),
+    };
+
+    if (existingIndex >= 0) {
+      state.alert_rules[existingIndex] = rule;
+    } else {
+      state.alert_rules.push(rule);
+    }
+    save();
+    return rule;
+  },
+
+  getUserAlertRules(userEmail) {
+    if (!userEmail) return [];
+    return state.alert_rules
+      .filter(a => a.active && a.user_email?.toLowerCase() === userEmail.toLowerCase())
+      .map(a => ({
+        ...a,
+        product: this.getProductById(a.product_id),
+      }));
+  },
+
+  getAlertRulesForProduct(productId) {
+    return state.alert_rules.filter(
+      a => a.active && String(a.product_id) === String(productId)
+    );
+  },
+
+  deleteAlertRule(ruleId, userEmail = null) {
+    const initialLen = state.alert_rules.length;
+    state.alert_rules = state.alert_rules.filter(a => {
+      if (String(a.id) !== String(ruleId)) return true;
+      if (userEmail && a.user_email?.toLowerCase() !== userEmail.toLowerCase()) return true;
+      return false;
+    });
+    save();
+    return state.alert_rules.length < initialLen;
+  },
+
+  // ─── Notifications Operations ─────────────────────────────────────────
+  createNotification({ userId = null, userEmail, productId, type, title, message, oldValue = null, newValue = null }) {
+    const notification = {
+      id: nextNotificationId++,
+      user_id: userId,
+      user_email: userEmail ? userEmail.toLowerCase() : 'all',
+      product_id: productId,
+      type,
+      title,
+      message,
+      old_value: oldValue !== null ? String(oldValue) : null,
+      new_value: newValue !== null ? String(newValue) : null,
+      is_read: false,
+      created_at: new Date().toISOString(),
+    };
+    state.notifications.unshift(notification);
+    save();
+    return notification;
+  },
+
+  getUserNotifications(userEmail, limit = 50) {
+    return state.notifications
+      .filter(n => !userEmail || n.user_email === 'all' || n.user_email?.toLowerCase() === userEmail.toLowerCase())
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, limit);
+  },
+
+  markNotificationAsRead(notificationId, userEmail = null) {
+    const item = state.notifications.find(n => String(n.id) === String(notificationId));
+    if (item) {
+      if (!userEmail || item.user_email === 'all' || item.user_email?.toLowerCase() === userEmail.toLowerCase()) {
+        item.is_read = true;
+        save();
+        return item;
+      }
+    }
+    return null;
+  },
+
+  markAllNotificationsRead(userEmail = null) {
+    let count = 0;
+    state.notifications.forEach(n => {
+      if (!userEmail || n.user_email === 'all' || n.user_email?.toLowerCase() === userEmail.toLowerCase()) {
+        if (!n.is_read) {
+          n.is_read = true;
+          count++;
+        }
+      }
+    });
+    save();
+    return count;
   },
 };

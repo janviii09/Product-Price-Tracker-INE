@@ -5,12 +5,25 @@ import TrackedList from './components/TrackedList';
 import PriceChart from './components/PriceChart';
 import ScrapeLogsTable from './components/ScrapeLogsTable';
 import ProductDetailModal from './components/ProductDetailModal';
+import AuthModal from './components/AuthModal';
+import SetAlertModal from './components/SetAlertModal';
 import { ShoppingBag, LayoutGrid, Sparkles } from 'lucide-react';
 import './index.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 function App() {
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('ine_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [alertProduct, setAlertProduct] = useState(null);
+
   const [trackedProducts, setTrackedProducts] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [modalProductId, setModalProductId] = useState(null);
@@ -50,6 +63,17 @@ function App() {
     fetchTrackedProducts();
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST' });
+    } catch {
+      // ignore
+    }
+    localStorage.removeItem('ine_user');
+    localStorage.removeItem('ine_token');
+    setUser(null);
+  };
+
   const lastScrapeTime = trackedProducts.reduce((latest, tp) => {
     const time = tp.latestPrice?.scraped_at;
     if (!time) return latest;
@@ -63,6 +87,13 @@ function App() {
       <Header
         trackedCount={trackedProducts.length}
         lastScrapeTime={lastScrapeTime}
+        user={user}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onLogout={handleLogout}
+        onSelectProduct={(id) => {
+          setSelectedProductId(id);
+          setViewMode('tracked');
+        }}
       />
 
       {/* Top View Mode Switcher */}
@@ -121,6 +152,7 @@ function App() {
             }}
             onRefresh={handleRefresh}
             loading={loading}
+            onSetAlert={(p) => setAlertProduct(p)}
           />
 
           {selectedProductId && (
@@ -177,8 +209,24 @@ function App() {
           productId={modalProductId}
           onClose={() => setModalProductId(null)}
           onPriceRevealed={handlePriceRevealed}
+          onSetAlert={(p) => setAlertProduct(p)}
         />
       )}
+
+      {/* Set Price / Stock Alert Modal */}
+      <SetAlertModal
+        isOpen={Boolean(alertProduct)}
+        onClose={() => setAlertProduct(null)}
+        product={alertProduct}
+        user={user}
+      />
+
+      {/* User Login / Signup Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onAuthSuccess={(u) => setUser(u)}
+      />
     </div>
   );
 }

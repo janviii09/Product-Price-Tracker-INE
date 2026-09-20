@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   X, Lock, Unlock, Loader2, RefreshCw, ExternalLink,
-  ShieldCheck, Package, Clock, TrendingUp, AlertTriangle,
+  ShieldCheck, Package, Clock, TrendingUp, AlertTriangle, Bell,
   Headphones, Laptop, Monitor, MousePointer, Briefcase, Footprints, Zap, Home, Watch, Utensils
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
@@ -24,7 +24,7 @@ function getCategoryIcon(cat) {
   return <Package size={28} color="#94a3b8" />;
 }
 
-export default function ProductDetailModal({ productId, onClose, onPriceRevealed }) {
+export default function ProductDetailModal({ productId, onClose, onPriceRevealed, onSetAlert }) {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [revealing, setRevealing] = useState(false);
@@ -322,26 +322,37 @@ export default function ProductDetailModal({ productId, onClose, onPriceRevealed
               </div>
 
               {/* Reveal / Refresh Action Button */}
-              <div>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 {product.latestPrice ? (
-                  <button
-                    className="btn btn--primary"
-                    disabled={revealing}
-                    onClick={handleRevealPrice}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem' }}
-                  >
-                    {revealing ? (
-                      <>
-                        <Loader2 size={16} className="loading-spinner" />
-                        Scraping Live Store...
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCw size={16} />
-                        Re-Scrape Live Price
-                      </>
-                    )}
-                  </button>
+                  <>
+                    <button
+                      className="btn btn--primary"
+                      disabled={revealing}
+                      onClick={handleRevealPrice}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem' }}
+                    >
+                      {revealing ? (
+                        <>
+                          <Loader2 size={16} className="loading-spinner" />
+                          Scraping Live Store...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw size={16} />
+                          Re-Scrape Live Price
+                        </>
+                      )}
+                    </button>
+                    <button
+                      className="btn btn--ghost"
+                      onClick={() => onSetAlert?.(product)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1rem' }}
+                      title="Configure price-drop & back-in-stock alert"
+                    >
+                      <Bell size={16} color="#818cf8" />
+                      <span>Set Alert</span>
+                    </button>
+                  </>
                 ) : (
                   <button
                     className="btn btn--primary"

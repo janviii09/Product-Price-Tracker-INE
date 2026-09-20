@@ -21,6 +21,7 @@ import {
   logScrapeAttempt,
   getActiveProductsForScraping,
 } from '../db/supabase.js';
+import { evaluateAlerts } from './alertService.js';
 
 const MAX_RETRIES = 3;
 
@@ -81,6 +82,11 @@ export async function scrapeProduct(product, options = {}) {
         'INR',
         parsedMrp
       );
+
+      // Evaluate price-drop & back-in-stock alerts asynchronously
+      evaluateAlerts(product.id, validation.price, validation.stock).catch(err => {
+        console.error('[tracker] Alert evaluation failed:', err.message);
+      });
       
       console.log(`[tracker] ✅ ${product.name}: ₹${validation.price} | ${validation.stock} (${durationMs}ms, attempt ${attempt})`);
       
