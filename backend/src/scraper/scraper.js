@@ -89,22 +89,32 @@ export async function launchBrowser({ headed = false } = {}) {
       '--disable-dev-shm-usage',
       // Memory-saving flags for cloud deployments (512MB RAM on Render free tier)
       '--disable-gpu',
+      '--disable-software-rasterizer',
       '--disable-extensions',
       '--disable-background-networking',
       '--disable-default-apps',
       '--disable-sync',
       '--no-first-run',
+      '--no-zygote',
+      '--single-process',
     ],
   };
 
+  let browser;
   if (executablePath) {
-    launchOptions.executablePath = executablePath;
-    console.log(`[scraper] Using Chromium at: ${executablePath}`);
+    try {
+      launchOptions.executablePath = executablePath;
+      console.log(`[scraper] Using Chromium at: ${executablePath}`);
+      browser = await chromium.launch(launchOptions);
+    } catch (e) {
+      console.warn(`[scraper] Failed to launch with explicit path ${executablePath}: ${e.message}. Falling back to default.`);
+      delete launchOptions.executablePath;
+      browser = await chromium.launch(launchOptions);
+    }
   } else {
     console.log('[scraper] Using Playwright default Chromium');
+    browser = await chromium.launch(launchOptions);
   }
-
-  const browser = await chromium.launch(launchOptions);
 
   const context = await browser.newContext({
     viewport: { width: 1280, height: 720 },

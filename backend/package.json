@@ -8,6 +8,7 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "build": "npx playwright install --with-deps chromium || npx playwright install chromium",
+    "postinstall": "npx playwright install --with-deps chromium || npx playwright install chromium || true",
     "scrape:test": "node src/scraper/cli.js",
     "scrape:headed": "node src/scraper/cli.js --headed",
     "scrape:all": "node src/scraper/cli.js --all"
