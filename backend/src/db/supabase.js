@@ -82,9 +82,16 @@ export async function bulkUpsertProducts(productsArray) {
     description: item.description,
   }));
 
+  // Deduplicate by external_id — the store may return the same product
+  // on multiple pagination pages. Postgres ON CONFLICT cannot touch
+  // the same row twice in one statement.
+  const seen = new Map();
+  for (const r of records) seen.set(r.external_id, r);
+  const unique = [...seen.values()];
+
   const { data, error } = await db
     .from('products')
-    .upsert(records, { onConflict: 'external_id' })
+    .upsert(unique, { onConflict: 'external_id' })
     .select();
 
   if (error) throw new Error(`Failed to bulk upsert products: ${error.message}`);
