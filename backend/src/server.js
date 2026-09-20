@@ -20,6 +20,7 @@ import productsRouter from './routes/products.js';
 import cronRouter from './routes/cron.js';
 import alertsRouter from './routes/alerts.js';
 import authRouter from './routes/auth.js';
+import { isSupabaseConfigured } from './db/supabase.js';
 
 dotenv.config();
 
@@ -78,6 +79,14 @@ const healthCheck = (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    db: isSupabaseConfigured ? 'supabase' : 'localStore',
+    hasSupabaseUrl: Boolean(process.env.SUPABASE_URL),
+    hasSupabaseKey: Boolean(
+      process.env.SUPABASE_SERVICE_KEY ||
+      process.env.SUPABASE_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.SUPABASE_ANON_KEY
+    ),
   });
 };
 app.get('/health', healthCheck);

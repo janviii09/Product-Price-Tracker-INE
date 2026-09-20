@@ -16,10 +16,17 @@ import { localStore } from './localStore.js';
 
 dotenv.config();
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+const clean = (val) => (val ? String(val).trim().replace(/^["']|["']$/g, '') : '');
 
-const isSupabaseConfigured = Boolean(
+const supabaseUrl = clean(process.env.SUPABASE_URL);
+const supabaseKey = clean(
+  process.env.SUPABASE_SERVICE_KEY ||
+  process.env.SUPABASE_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_ANON_KEY
+);
+
+export const isSupabaseConfigured = Boolean(
   supabaseUrl &&
   !supabaseUrl.includes('your_') &&
   supabaseKey &&
@@ -28,6 +35,8 @@ const isSupabaseConfigured = Boolean(
 
 if (!isSupabaseConfigured) {
   console.log('[db] ℹ️  Running with local file storage fallback. (Configure SUPABASE_URL & SUPABASE_SERVICE_KEY in .env to use Supabase)');
+} else {
+  console.log(`[db] ✅ Supabase configured with URL: ${supabaseUrl}`);
 }
 
 let supabase = null;

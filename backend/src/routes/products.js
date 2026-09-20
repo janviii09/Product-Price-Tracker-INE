@@ -93,6 +93,7 @@ router.post('/track', async (req, res) => {
  */
 router.get('/', async (req, res) => {
   try {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     const products = await getTrackedProductsWithLatestPrice();
     res.json(products);
   } catch (err) {
@@ -108,6 +109,7 @@ router.get('/', async (req, res) => {
  */
 router.get('/catalog', async (req, res) => {
   try {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize, 10) || 24));
     const category = req.query.category || '';
