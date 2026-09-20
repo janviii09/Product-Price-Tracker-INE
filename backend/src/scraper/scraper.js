@@ -34,38 +34,50 @@ const NAVIGATION_TIMEOUT = 15000;
  * @returns {Promise<{browser: Browser, context: BrowserContext}>}
  */
 export async function launchBrowser({ headed = false } = {}) {
-  // Find the full Chromium executable. On macOS, playwright installs
-  // "Chrome for Testing.app" under the chromium-XXXX directory.
-  // We prefer the full browser because chrome-headless-shell may not
-  // be available (download failures on some networks).
   const fs = await import('fs');
   const path = await import('path');
 
   let executablePath = undefined;
-  const cacheDir = path.join(
-    process.env.HOME || process.env.USERPROFILE || '',
-    'Library', 'Caches', 'ms-playwright'
-  );
+  const home = process.env.HOME || process.env.USERPROFILE || '';
 
-  // Look for chromium-XXXX directory
-  try {
-    const entries = fs.readdirSync(cacheDir);
-    const chromiumDir = entries.find(e => e.startsWith('chromium-') && !e.includes('headless'));
-    if (chromiumDir) {
-      const macApp = path.join(
-        cacheDir, chromiumDir, 'chrome-mac-arm64',
-        'Google Chrome for Testing.app', 'Contents', 'MacOS', 'Google Chrome for Testing'
-      );
-      const linuxBin = path.join(cacheDir, chromiumDir, 'chrome-linux', 'chrome');
+  // Playwright cache directories — macOS vs Linux
+  const cacheDirs = [
+    process.env.PLAYWRIGHT_BROWSERS_PATH,
+    path.join(home, 'Library', 'Caches', 'ms-playwright'),   // macOS
+    path.join(home, '.cache', 'ms-playwright'),                // Linux / Docker
+    '/root/.cache/ms-playwright',                               // Docker (root user)
+  ].filter(Boolean);
 
-      if (fs.existsSync(macApp)) {
-        executablePath = macApp;
-      } else if (fs.existsSync(linuxBin)) {
-        executablePath = linuxBin;
+  for (const cacheDir of cacheDirs) {
+    try {
+      const entries = fs.readdirSync(cacheDir);
+      // Prefer full chromium over headless-shell
+      const chromiumDir = entries.find(e => e.startsWith('chromium-') && !e.includes('headless'));
+      if (chromiumDir) {
+        // macOS paths
+        const macApp = path.join(
+          cacheDir, chromiumDir, 'chrome-mac-arm64',
+          'Google Chrome for Testing.app', 'Contents', 'MacOS', 'Google Chrome for Testing'
+        );
+        const macIntel = path.join(
+          cacheDir, chromiumDir, 'chrome-mac',
+          'Google Chrome for Testing.app', 'Contents', 'MacOS', 'Google Chrome for Testing'
+        );
+        // Linux paths
+        const linuxBin = path.join(cacheDir, chromiumDir, 'chrome-linux', 'chrome');
+        const linuxBin64 = path.join(cacheDir, chromiumDir, 'chrome-linux64', 'chrome');
+
+        for (const candidate of [macApp, macIntel, linuxBin, linuxBin64]) {
+          if (fs.existsSync(candidate)) {
+            executablePath = candidate;
+            break;
+          }
+        }
+        if (executablePath) break;
       }
+    } catch {
+      // This cache dir doesn't exist, try next
     }
-  } catch (e) {
-    // Fallback: let Playwright find it
   }
 
   const launchOptions = {
@@ -75,18 +87,27 @@ export async function launchBrowser({ headed = false } = {}) {
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
+      // Memory-saving flags for cloud deployments (512MB RAM on Render free tier)
+      '--disable-gpu',
+      '--disable-extensions',
+      '--disable-background-networking',
+      '--disable-default-apps',
+      '--disable-sync',
+      '--no-first-run',
     ],
   };
 
   if (executablePath) {
     launchOptions.executablePath = executablePath;
     console.log(`[scraper] Using Chromium at: ${executablePath}`);
+  } else {
+    console.log('[scraper] Using Playwright default Chromium');
   }
 
   const browser = await chromium.launch(launchOptions);
 
   const context = await browser.newContext({
-    viewport: { width: 1440, height: 900 },
+    viewport: { width: 1280, height: 720 },
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
     locale: 'en-IN',
     timezoneId: 'Asia/Kolkata',
