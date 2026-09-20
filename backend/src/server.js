@@ -20,7 +20,7 @@ import productsRouter from './routes/products.js';
 import cronRouter from './routes/cron.js';
 import alertsRouter from './routes/alerts.js';
 import authRouter from './routes/auth.js';
-import { isSupabaseConfigured } from './db/supabase.js';
+import { isSupabaseConfigured, getSupabase } from './db/supabase.js';
 
 dotenv.config();
 
@@ -74,19 +74,28 @@ app.use('/api/alerts', alertsRouter);
 app.use('/api/auth', authRouter);
 
 // Health check
-const healthCheck = (req, res) => {
+const healthCheck = async (req, res) => {
+  let catalogCount = null;
+  let supabaseError = null;
+  try {
+    const db = getSupabase();
+    if (db) {
+      const { count, error } = await db.from('products').select('*', { count: 'exact', head: true });
+      catalogCount = count;
+      if (error) supabaseError = error.message;
+    }
+  } catch (e) {
+    supabaseError = e.message;
+  }
+
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     db: isSupabaseConfigured ? 'supabase' : 'localStore',
-    hasSupabaseUrl: Boolean(process.env.SUPABASE_URL),
-    hasSupabaseKey: Boolean(
-      process.env.SUPABASE_SERVICE_KEY ||
-      process.env.SUPABASE_KEY ||
-      process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.SUPABASE_ANON_KEY
-    ),
+    catalogCount,
+    supabaseError,
+    supabaseUrl: process.env.SUPABASE_URL || null,
   });
 };
 app.get('/health', healthCheck);

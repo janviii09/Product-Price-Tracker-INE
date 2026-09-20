@@ -113,7 +113,19 @@ export async function getCatalogProducts({ page = 1, pageSize = 20, category = '
     .order('id', { ascending: true })
     .range(from, to);
 
-  if (error) throw new Error(`Failed to get catalog products: ${error.message}`);
+  if (error) {
+    console.error('[supabase] Catalog query error:', error.message);
+    return localStore.getCatalogProducts({ page, pageSize, category, query });
+  }
+
+  // If Supabase returned 0 items but localStore has data, use localStore as safety net
+  if (!data || data.length === 0) {
+    const localResult = localStore.getCatalogProducts({ page, pageSize, category, query });
+    if (localResult.total > 0) {
+      console.log(`[supabase] Supabase returned 0 items, using localStore fallback (${localResult.total} products available)`);
+      return localResult;
+    }
+  }
 
   const total = count || 0;
   const pages = Math.ceil(total / pageSize) || 1;
