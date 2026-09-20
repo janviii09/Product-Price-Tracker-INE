@@ -3,7 +3,7 @@
 # Designed for Render / Railway / any Docker host
 # ──────────────────────────────────────────────────
 
-FROM node:20-slim
+FROM node:22-slim
 
 # Install system dependencies that Playwright Chromium needs
 RUN apt-get update && apt-get install -y --no-install-recommends \

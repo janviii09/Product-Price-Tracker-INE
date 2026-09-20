@@ -10,6 +10,12 @@
  * to localStore so the application is completely functional out of the box.
  */
 
+// Polyfill WebSocket for Node < 22 (required by @supabase/supabase-js realtime)
+import { WebSocket } from 'ws';
+if (!globalThis.WebSocket) {
+  globalThis.WebSocket = WebSocket;
+}
+
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { localStore } from './localStore.js';
