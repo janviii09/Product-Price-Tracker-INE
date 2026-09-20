@@ -3,7 +3,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine,
 } from 'recharts';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, Activity } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -19,23 +19,24 @@ const CustomTooltip = ({ active, payload, label }) => {
 
   return (
     <div style={{
-      background: 'rgba(17, 24, 39, 0.95)',
-      border: '1px solid rgba(255,255,255,0.1)',
-      borderRadius: '8px',
-      padding: '10px 14px',
-      boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+      background: 'var(--bg-card)',
+      border: '1px solid var(--amber-primary)',
+      borderRadius: '4px',
+      padding: '8px 12px',
+      boxShadow: '0 8px 24px rgba(0,0,0,0.8)',
+      fontFamily: 'var(--font-mono)',
     }}>
-      <p style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '4px' }}>
+      <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', marginBottom: '4px' }}>
         {new Date(data.scraped_at).toLocaleString('en-IN', {
           day: 'numeric', month: 'short', year: 'numeric',
           hour: '2-digit', minute: '2-digit',
         })}
       </p>
-      <p style={{ color: '#f1f5f9', fontSize: '1.1rem', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
+      <p style={{ color: 'var(--amber-bright)', fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>
         {price}
       </p>
       {data.stock && (
-        <p style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '4px' }}>
+        <p style={{ color: 'var(--teal-status)', fontSize: '0.65rem', marginTop: '4px', margin: 0 }}>
           {data.stock}
         </p>
       )}
@@ -69,32 +70,52 @@ export default function PriceChart({ productId }) {
 
   if (!productId) {
     return (
-      <div className="chart-container">
-        <div className="chart-empty">
-          <p>Select a tracked product to view price history</p>
-        </div>
+      <div className="chart-container" style={{
+        padding: '3rem 1.5rem',
+        textAlign: 'center',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-color)',
+        borderRadius: '4px',
+        fontFamily: 'var(--font-mono)',
+        color: 'var(--text-muted)',
+      }}>
+        <p>SELECT A TRACKED TARGET TO INSPECT HISTORICAL TELEMETRY</p>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="chart-container">
-        <div className="chart-empty">
-          <span className="loading-spinner" /> Loading chart data...
-        </div>
+      <div className="chart-container" style={{
+        padding: '3rem 1.5rem',
+        textAlign: 'center',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-color)',
+        borderRadius: '4px',
+        fontFamily: 'var(--font-mono)',
+        color: 'var(--text-muted)',
+      }}>
+        <span className="loading-spinner" style={{ color: 'var(--amber-primary)' }} />
+        <p style={{ marginTop: '0.75rem' }}>POLLING TELEMETRY HISTORY...</p>
       </div>
     );
   }
 
   if (history.length === 0) {
     return (
-      <div className="chart-container">
-        <div className="card__header">
-          <h3 className="card__title"><TrendingUp size={18} /> Price History</h3>
+      <div className="chart-container" style={{
+        padding: '2rem 1.5rem',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-color)',
+        borderRadius: '4px',
+        fontFamily: 'var(--font-mono)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--amber-primary)', marginBottom: '1rem', fontSize: '0.85rem' }}>
+          <TrendingUp size={16} />
+          <span>PRICE TELEMETRY TRAJECTORY</span>
         </div>
-        <div className="chart-empty">
-          <p>No price data yet. Trigger a scrape to start collecting data.</p>
+        <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+          No price logs recorded. Trigger a live crawl to begin plotting trajectory.
         </div>
       </div>
     );
@@ -126,48 +147,63 @@ export default function PriceChart({ productId }) {
   };
 
   return (
-    <div className="chart-container">
-      <div className="card__header">
-        <h3 className="card__title"><TrendingUp size={18} /> Price History</h3>
-        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.78rem', fontFamily: "'JetBrains Mono', monospace" }}>
-          <span style={{ color: '#10b981' }}>
-            Low: ₹{minPrice.toLocaleString('en-IN')}
+    <div className="chart-container" style={{
+      background: 'var(--bg-card)',
+      border: '1px solid var(--border-color)',
+      borderRadius: '4px',
+      padding: '1.25rem',
+      fontFamily: 'var(--font-mono)',
+    }}>
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '0.75rem',
+        marginBottom: '1rem',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--amber-primary)', fontSize: '0.85rem', fontWeight: 700 }}>
+          <TrendingUp size={16} />
+          <span>PRICE TELEMETRY TRAJECTORY</span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem' }}>
+          <span style={{ color: 'var(--teal-status)' }}>
+            ATL: ₹{minPrice.toLocaleString('en-IN')}
           </span>
-          <span style={{ color: '#94a3b8' }}>
-            Avg: ₹{Math.round(avgPrice).toLocaleString('en-IN')}
+          <span style={{ color: 'var(--text-muted)' }}>
+            AVG: ₹{Math.round(avgPrice).toLocaleString('en-IN')}
           </span>
-          <span style={{ color: '#ef4444' }}>
-            High: ₹{maxPrice.toLocaleString('en-IN')}
+          <span style={{ color: '#f87171' }}>
+            ATH: ₹{maxPrice.toLocaleString('en-IN')}
           </span>
         </div>
       </div>
 
       {isSinglePoint && (
         <div style={{
-          padding: '0.5rem 1rem',
-          margin: '0.5rem 0 1rem 0',
-          background: 'rgba(99, 102, 241, 0.1)',
-          border: '1px solid rgba(99, 102, 241, 0.25)',
-          borderRadius: '8px',
-          fontSize: '0.8rem',
-          color: '#c7d2fe',
+          padding: '0.5rem 0.85rem',
+          margin: '0 0 1rem 0',
+          background: 'rgba(232, 168, 56, 0.08)',
+          border: '1px solid rgba(232, 168, 56, 0.25)',
+          borderRadius: '3px',
+          fontSize: '0.75rem',
+          color: 'var(--amber-dim-text)',
           display: 'flex',
           alignItems: 'center',
           gap: '0.5rem',
         }}>
-          <span>ℹ️</span>
-          <span>
-            Only <strong>1 data point</strong> recorded so far. A trend line requires 2+ scrapes. Click the <strong>↻ (Scrape)</strong> button on the product card above to add another price check!
-          </span>
+          <Activity size={14} color="var(--amber-primary)" />
+          <span>Single spot price indexed. Trajectory curve activates upon subsequent scrape cycles.</span>
         </div>
       )}
 
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={260}>
         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
           <defs>
-            <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+            <linearGradient id="amberChartGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#e8a838" stopOpacity={0.35} />
+              <stop offset="95%" stopColor="#e8a838" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid
@@ -178,23 +214,25 @@ export default function PriceChart({ productId }) {
           <XAxis
             dataKey="time"
             stroke="#64748b"
-            fontSize={11}
+            fontSize={10}
             tickLine={false}
-            axisLine={{ stroke: 'rgba(255,255,255,0.05)' }}
+            axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
+            tick={{ fill: '#64748b', fontFamily: 'JetBrains Mono, monospace' }}
           />
           <YAxis
             stroke="#64748b"
-            fontSize={11}
+            fontSize={10}
             tickLine={false}
             axisLine={false}
             tickFormatter={formatYAxis}
             domain={[Math.max(0, Math.floor(minPrice - padding)), Math.ceil(maxPrice + padding)]}
+            tick={{ fill: '#64748b', fontFamily: 'JetBrains Mono, monospace' }}
           />
           <Tooltip content={<CustomTooltip />} />
           {!isSinglePoint && (
             <ReferenceLine
               y={avgPrice}
-              stroke="#6366f1"
+              stroke="#e8a838"
               strokeDasharray="4 4"
               strokeOpacity={0.4}
             />
@@ -202,20 +240,20 @@ export default function PriceChart({ productId }) {
           <Area
             type="monotone"
             dataKey="price"
-            stroke="#818cf8"
+            stroke="#e8a838"
             strokeWidth={2}
-            fill="url(#priceGradient)"
+            fill="url(#amberChartGrad)"
             dot={{
-              fill: '#6366f1',
+              fill: '#e8a838',
               strokeWidth: 2,
-              r: 5,
-              stroke: '#111827',
+              r: 4,
+              stroke: '#080b12',
             }}
             activeDot={{
-              fill: '#a5b4fc',
+              fill: '#ffd070',
               strokeWidth: 2,
-              r: 7,
-              stroke: '#6366f1',
+              r: 6,
+              stroke: '#e8a838',
             }}
           />
         </AreaChart>

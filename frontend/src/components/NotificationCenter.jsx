@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, TrendingDown, Package, Check, CheckCheck, ExternalLink } from 'lucide-react';
+import { Bell, TrendingDown, Package, Check, CheckCheck, ExternalLink, Activity } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -23,7 +23,6 @@ export default function NotificationCenter({ user, onSelectProduct }) {
 
   useEffect(() => {
     fetchNotifications();
-    // Poll for new notifications every 20 seconds
     const interval = setInterval(fetchNotifications, 20000);
     return () => clearInterval(interval);
   }, [user]);
@@ -71,10 +70,10 @@ export default function NotificationCenter({ user, onSelectProduct }) {
     const diff = Date.now() - new Date(dateStr).getTime();
     const min = Math.floor(diff / 60000);
     const hr = Math.floor(diff / 3600000);
-    if (min < 1) return 'Just now';
-    if (min < 60) return `${min}m ago`;
-    if (hr < 24) return `${hr}h ago`;
-    return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    if (min < 1) return 'JUST NOW';
+    if (min < 60) return `${min}M AGO`;
+    if (hr < 24) return `${hr}H AGO`;
+    return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }).toUpperCase();
   };
 
   return (
@@ -82,31 +81,34 @@ export default function NotificationCenter({ user, onSelectProduct }) {
       <button
         className="btn btn--ghost"
         onClick={() => setIsOpen(!isOpen)}
-        title="Notifications"
+        title="Telemetry Notifications"
         style={{
           position: 'relative',
-          padding: '0.5rem',
+          padding: '0.4rem 0.6rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderRadius: '8px',
+          borderRadius: '4px',
+          background: isOpen ? 'rgba(232, 168, 56, 0.1)' : 'transparent',
+          border: isOpen ? '1px solid var(--amber-glow)' : '1px solid transparent',
+          color: 'var(--amber-primary)',
         }}
       >
-        <Bell size={19} />
+        <Bell size={18} />
         {unreadCount > 0 && (
           <span style={{
             position: 'absolute',
-            top: '-4px',
-            right: '-4px',
-            background: '#ef4444',
-            color: '#ffffff',
-            fontSize: '0.68rem',
+            top: '-3px',
+            right: '-3px',
+            background: 'var(--amber-primary)',
+            color: '#080b12',
+            fontSize: '0.65rem',
+            fontFamily: 'var(--font-mono)',
             fontWeight: 700,
-            padding: '1px 5px',
-            borderRadius: '10px',
-            minWidth: '16px',
+            padding: '1px 4px',
+            borderRadius: '2px',
+            minWidth: '14px',
             textAlign: 'center',
-            boxShadow: '0 0 8px rgba(239, 68, 68, 0.6)',
           }}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
@@ -118,37 +120,39 @@ export default function NotificationCenter({ user, onSelectProduct }) {
           position: 'absolute',
           top: 'calc(100% + 8px)',
           right: 0,
-          width: '360px',
+          width: '380px',
           maxWidth: '90vw',
-          background: '#0f172a',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          borderRadius: '12px',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.6)',
-          zIndex: 1000,
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '4px',
+          boxShadow: '0 15px 35px rgba(0, 0, 0, 0.8), 0 0 25px rgba(232, 168, 56, 0.05)',
+          zIndex: 1100,
           overflow: 'hidden',
-          animation: 'fadeIn 0.15s ease-out',
         }}>
           {/* Header */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '0.85rem 1rem',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            background: 'rgba(15, 23, 42, 0.8)',
+            padding: '0.75rem 1rem',
+            borderBottom: '1px solid var(--border-color)',
+            background: 'rgba(0, 0, 0, 0.4)',
+            fontFamily: 'var(--font-mono)',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#f8fafc' }}>Notifications</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Activity size={14} color="var(--amber-primary)" />
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                DISPATCH QUEUE
+              </span>
               {unreadCount > 0 && (
                 <span style={{
-                  background: 'rgba(99, 102, 241, 0.2)',
-                  color: '#818cf8',
-                  fontSize: '0.7rem',
-                  fontWeight: 600,
-                  padding: '2px 6px',
-                  borderRadius: '6px',
+                  background: 'var(--amber-dim)',
+                  color: 'var(--amber-bright)',
+                  fontSize: '0.65rem',
+                  padding: '1px 5px',
+                  borderRadius: '2px',
                 }}>
-                  {unreadCount} new
+                  {unreadCount} UNREAD
                 </span>
               )}
             </div>
@@ -159,19 +163,18 @@ export default function NotificationCenter({ user, onSelectProduct }) {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#94a3b8',
-                  fontSize: '0.75rem',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.7rem',
+                  fontFamily: 'inherit',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.25rem',
-                  padding: '2px 6px',
-                  borderRadius: '4px',
+                  padding: 0,
                 }}
-                title="Mark all as read"
               >
-                <CheckCheck size={14} />
-                <span>Mark all read</span>
+                <CheckCheck size={12} />
+                <span>ACK ALL</span>
               </button>
             )}
           </div>
@@ -179,79 +182,66 @@ export default function NotificationCenter({ user, onSelectProduct }) {
           {/* List */}
           <div style={{ maxHeight: '360px', overflowY: 'auto' }}>
             {notifications.length === 0 ? (
-              <div style={{ padding: '2rem 1rem', textAlign: 'center', color: '#64748b' }}>
-                <Bell size={28} style={{ margin: '0 auto 0.5rem', opacity: 0.4 }} />
-                <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>No notifications yet</div>
-                <div style={{ fontSize: '0.75rem', marginTop: '2px' }}>
-                  Price drops and restocks will appear here automatically.
-                </div>
+              <div style={{ padding: '2.5rem 1rem', textAlign: 'center', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                DISPATCH QUEUE EMPTY // NO EVENTS
               </div>
             ) : (
-              notifications.map((notif) => (
+              notifications.map((item) => (
                 <div
-                  key={notif.id}
+                  key={item.id}
                   onClick={() => {
-                    if (notif.product_id) onSelectProduct?.(notif.product_id);
-                    if (!notif.is_read) handleMarkRead(notif.id, { stopPropagation: () => {} });
-                    setIsOpen(false);
+                    if (item.product_id) {
+                      onSelectProduct?.(item.product_id);
+                      setIsOpen(false);
+                    }
                   }}
                   style={{
-                    padding: '0.85rem 1rem',
+                    padding: '0.75rem 1rem',
                     borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
-                    background: notif.is_read ? 'transparent' : 'rgba(99, 102, 241, 0.06)',
-                    cursor: notif.product_id ? 'pointer' : 'default',
+                    background: item.is_read ? 'transparent' : 'rgba(232, 168, 56, 0.03)',
+                    cursor: item.product_id ? 'pointer' : 'default',
                     display: 'flex',
-                    gap: '0.75rem',
-                    transition: 'background 0.15s',
+                    flexDirection: 'column',
+                    gap: '0.3rem',
+                    transition: 'background 0.15s ease',
                   }}
                 >
-                  <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '8px',
-                    background: notif.type === 'PRICE_DROP' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(99, 102, 241, 0.15)',
-                    color: notif.type === 'PRICE_DROP' ? '#34d399' : '#818cf8',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}>
-                    {notif.type === 'PRICE_DROP' ? <TrendingDown size={16} /> : <Package size={16} />}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.65rem',
+                      fontWeight: 700,
+                      color: item.type === 'price_drop' ? 'var(--teal-status)' : 'var(--amber-primary)',
+                      letterSpacing: '0.04em',
+                    }}>
+                      {item.type === 'price_drop' ? '▼ PRICE DROP' : '● DISPATCH EVENT'}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                      {formatTime(item.created_at)}
+                    </span>
                   </div>
 
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                      <div style={{
-                        fontSize: '0.82rem',
-                        fontWeight: notif.is_read ? 500 : 700,
-                        color: notif.is_read ? '#cbd5e1' : '#f8fafc',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}>
-                        {notif.title}
-                      </div>
-                      <span style={{ fontSize: '0.7rem', color: '#64748b', flexShrink: 0 }}>
-                        {formatTime(notif.created_at)}
-                      </span>
-                    </div>
-
-                    <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '2px', lineHeight: 1.3 }}>
-                      {notif.message}
-                    </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>
+                    {item.message || item.content}
                   </div>
 
-                  {!notif.is_read && (
-                    <div
+                  {!item.is_read && (
+                    <button
+                      onClick={(e) => handleMarkRead(item.id, e)}
                       style={{
-                        width: '7px',
-                        height: '7px',
-                        borderRadius: '50%',
-                        background: '#6366f1',
-                        flexShrink: 0,
-                        alignSelf: 'center',
+                        alignSelf: 'flex-start',
+                        marginTop: '0.2rem',
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--amber-primary)',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.65rem',
+                        cursor: 'pointer',
+                        padding: 0,
                       }}
-                    />
+                    >
+                      [ ACKNOWLEDGE ]
+                    </button>
                   )}
                 </div>
               ))

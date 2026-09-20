@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Mail, Lock, User, LogIn, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Mail, Lock, User, LogIn, UserPlus, AlertCircle, Loader2, Terminal, Shield } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -55,56 +55,85 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
       <div
         className="modal-content scale-in"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '420px', width: '90%', padding: '2rem' }}
+        style={{
+          maxWidth: '440px',
+          width: '90%',
+          padding: '2rem',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '4px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(232, 168, 56, 0.05)',
+        }}
       >
         <button
           className="modal-close"
           onClick={onClose}
           aria-label="Close modal"
-          style={{ position: 'absolute', top: '1.25rem', right: '1.25rem' }}
+          style={{
+            position: 'absolute',
+            top: '1rem',
+            right: '1rem',
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-muted)',
+            cursor: 'pointer',
+          }}
         >
-          <X size={20} />
+          <X size={18} />
         </button>
 
-        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+        {/* Modal Header */}
+        <div style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
           <div style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
-            background: 'rgba(99, 102, 241, 0.15)',
-            border: '1px solid rgba(99, 102, 241, 0.3)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 1rem',
-            color: '#818cf8',
+            gap: '0.5rem',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.7rem',
+            color: 'var(--amber-primary)',
+            letterSpacing: '0.08em',
+            marginBottom: '0.4rem',
           }}>
-            {mode === 'signup' ? <UserPlus size={24} /> : <LogIn size={24} />}
+            <Terminal size={14} />
+            <span>INE PULSE TERMINAL // AUTH ENGINE</span>
           </div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#f8fafc', margin: '0 0 0.4rem 0' }}>
-            {mode === 'signup' ? 'Create an Account' : 'Welcome Back'}
+
+          <h2 style={{
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: 'var(--text-primary)',
+            margin: '0 0 0.3rem 0',
+            letterSpacing: '-0.01em',
+          }}>
+            {mode === 'signup' ? 'REGISTER OPERATOR' : 'SIGN IN TO WORKSPACE'}
           </h2>
-          <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0 }}>
+          <p style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.75rem',
+            color: 'var(--text-muted)',
+            margin: 0,
+          }}>
             {mode === 'signup'
-              ? 'Get personalized price-drop and back-in-stock alerts'
-              : 'Sign in to manage your alerts and notifications'}
+              ? 'CONFIGURE ACCESS KEY FOR AUTOMATED ALERT DISPATCH'
+              : 'ENTER CREDENTIALS TO ACCESS TELEMETRY ALERTS'}
           </p>
         </div>
 
         {error && (
           <div style={{
             padding: '0.75rem 1rem',
-            background: 'rgba(239, 68, 68, 0.1)',
+            background: 'rgba(239, 68, 68, 0.08)',
             border: '1px solid rgba(239, 68, 68, 0.3)',
-            borderRadius: '8px',
+            borderRadius: '4px',
             color: '#f87171',
-            fontSize: '0.85rem',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.75rem',
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
             marginBottom: '1.25rem',
           }}>
-            <AlertCircle size={16} style={{ flexShrink: 0 }} />
+            <AlertCircle size={14} style={{ flexShrink: 0 }} />
             <span>{error}</span>
           </div>
         )}
@@ -112,26 +141,35 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {mode === 'signup' && (
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.4rem' }}>
-                Your Name
+              <label style={{
+                display: 'block',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.7rem',
+                color: 'var(--text-secondary)',
+                letterSpacing: '0.05em',
+                marginBottom: '0.4rem',
+              }}>
+                OPERATOR IDENTITY
               </label>
               <div style={{ position: 'relative' }}>
-                <User size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+                <User size={15} color="var(--amber-primary)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Alex Doe"
+                  placeholder="e.g. Operator Zero"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.85rem',
                     width: '100%',
                     padding: '0.65rem 0.75rem 0.65rem 2.4rem',
-                    background: 'rgba(15, 23, 42, 0.6)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '8px',
-                    color: '#f8fafc',
-                    fontSize: '0.9rem',
+                    background: 'rgba(0, 0, 0, 0.4)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '4px',
+                    color: 'var(--text-primary)',
                     boxSizing: 'border-box',
+                    outline: 'none',
                   }}
                 />
               </div>
@@ -139,53 +177,71 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
           )}
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.4rem' }}>
-              Email Address
+            <label style={{
+              display: 'block',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.7rem',
+              color: 'var(--text-secondary)',
+              letterSpacing: '0.05em',
+              marginBottom: '0.4rem',
+            }}>
+              OPERATOR EMAIL
             </label>
             <div style={{ position: 'relative' }}>
-              <Mail size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+              <Mail size={15} color="var(--amber-primary)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
               <input
                 type="email"
                 required
-                placeholder="you@example.com"
+                placeholder="operator@ine.telemetry"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.85rem',
                   width: '100%',
                   padding: '0.65rem 0.75rem 0.65rem 2.4rem',
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '8px',
-                  color: '#f8fafc',
-                  fontSize: '0.9rem',
+                  background: 'rgba(0, 0, 0, 0.4)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '4px',
+                  color: 'var(--text-primary)',
                   boxSizing: 'border-box',
+                  outline: 'none',
                 }}
               />
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.4rem' }}>
-              Password
+            <label style={{
+              display: 'block',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.7rem',
+              color: 'var(--text-secondary)',
+              letterSpacing: '0.05em',
+              marginBottom: '0.4rem',
+            }}>
+              ACCESS KEY / TOKEN
             </label>
             <div style={{ position: 'relative' }}>
-              <Lock size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+              <Lock size={15} color="var(--amber-primary)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
               <input
                 type="password"
                 required
                 minLength={6}
-                placeholder="At least 6 characters"
+                placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.85rem',
                   width: '100%',
                   padding: '0.65rem 0.75rem 0.65rem 2.4rem',
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '8px',
-                  color: '#f8fafc',
-                  fontSize: '0.9rem',
+                  background: 'rgba(0, 0, 0, 0.4)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '4px',
+                  color: 'var(--text-primary)',
                   boxSizing: 'border-box',
+                  outline: 'none',
                 }}
               />
             </div>
@@ -198,58 +254,89 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
             style={{
               marginTop: '0.5rem',
               padding: '0.75rem',
-              fontWeight: 600,
-              fontSize: '0.95rem',
+              fontFamily: 'var(--font-mono)',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              letterSpacing: '0.05em',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.5rem',
+              background: 'var(--amber-primary)',
+              color: '#080b12',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
             }}
           >
             {loading ? (
               <>
                 <Loader2 size={16} className="loading-spinner" />
-                <span>Processing...</span>
+                <span>AUTHORIZING...</span>
               </>
             ) : mode === 'signup' ? (
-              'Create Account'
+              'CREATE ACCESS RECORD →'
             ) : (
-              'Sign In'
+              'AUTHORIZE & ENTER WORKSPACE →'
             )}
           </button>
         </form>
 
         <div style={{
           marginTop: '1.5rem',
-          paddingTop: '1.25rem',
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          textAlign: 'center',
-          fontSize: '0.85rem',
-          color: '#94a3b8',
+          paddingTop: '1rem',
+          borderTop: '1px solid var(--border-color)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontFamily: 'var(--font-mono)',
+          fontSize: '0.75rem',
+          color: 'var(--text-muted)',
         }}>
           {mode === 'signup' ? (
             <span>
-              Already have an account?{' '}
+              EXISTING OPERATOR?{' '}
               <button
                 type="button"
                 onClick={() => { setMode('login'); setError(null); }}
-                style={{ background: 'none', border: 'none', color: '#818cf8', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--amber-primary)',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  padding: 0,
+                  fontFamily: 'inherit',
+                }}
               >
-                Sign In
+                SIGN IN
               </button>
             </span>
           ) : (
             <span>
-              Don't have an account?{' '}
+              NEW OPERATOR?{' '}
               <button
                 type="button"
                 onClick={() => { setMode('signup'); setError(null); }}
-                style={{ background: 'none', border: 'none', color: '#818cf8', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--amber-primary)',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  padding: 0,
+                  fontFamily: 'inherit',
+                }}
               >
-                Create Account
+                REQUEST ACCESS
               </button>
             </span>
           )}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--teal-status)' }}>
+            <Shield size={12} />
+            <span>256-BIT TLS</span>
+          </div>
         </div>
       </div>
     </div>
